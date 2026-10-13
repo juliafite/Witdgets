@@ -1,3 +1,8 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pomodoro de Júlia</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,25 +21,20 @@
   --font-body: "Nunito", "Segoe UI", system-ui, sans-serif;
   color-scheme: light;
 }
-html, body { min-height: 100%; }
+html, body { height: 100%; margin: 0; padding: 0; }
 body {
-  background: var(--sky);
+  background: transparent;
   color: var(--ink);
   font-family: var(--font-body);
-  display: grid;
-  place-items: center;
-  padding-inline: 16px;
-  padding-block: 16px;
-  box-sizing: border-box;
 }
 .pomo {
   width: 100%;
-  max-width: 440px;
+  min-height: 100%;
   background: linear-gradient(160deg, var(--card), var(--sky-deep));
-  border-radius: 28px;
-  padding: clamp(20px, 5vw, 32px);
+  border-radius: 14px;
+  padding: 16px;
   box-sizing: border-box;
-  box-shadow: 0 10px 30px -18px rgba(60, 38, 22, .5);
+  align-content: center;
   display: grid;
   gap: 18px;
   justify-items: center;
@@ -99,6 +99,8 @@ body {
 .msg { min-height: 1.2em; font-weight: 700; color: var(--ink); font-size: .9rem; }
 </style>
 
+</head>
+<body>
 <div class="pomo">
   <div class="modes" role="group" aria-label="Modo">
     <button class="mode" id="m-focus" data-min="25" data-label="Concentración" aria-pressed="true">Estudio<small>25'</small></button>
@@ -204,3 +206,5 @@ function chime() {
 }
 render(); renderTally();
 </script>
+</body>
+</html>
