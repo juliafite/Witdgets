@@ -1,0 +1,206 @@
+<title>Pomodoro de Júlia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400&family=Nunito:wght@500;600;700;800&display=swap">
+<style>
+/* Widget para incrustar en Notion: tarjeta única con anillo de progreso y selector de modo. Un solo tema claro a propósito. */
+:root {
+  --sky: #a98163;
+  --sky-deep: #8f6a4d;
+  --card: #b8926f;
+  --ink: #fdf6ee;
+  --ink-soft: #ecdcc8;
+  --accent: #f3dfc6;
+  --accent-strong: #6b4a33;
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body: "Nunito", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+html, body { min-height: 100%; }
+body {
+  background: var(--sky);
+  color: var(--ink);
+  font-family: var(--font-body);
+  display: grid;
+  place-items: center;
+  padding-inline: 16px;
+  padding-block: 16px;
+  box-sizing: border-box;
+}
+.pomo {
+  width: 100%;
+  max-width: 440px;
+  background: linear-gradient(160deg, var(--card), var(--sky-deep));
+  border-radius: 28px;
+  padding: clamp(20px, 5vw, 32px);
+  box-sizing: border-box;
+  box-shadow: 0 10px 30px -18px rgba(60, 38, 22, .5);
+  display: grid;
+  gap: 18px;
+  justify-items: center;
+  text-align: center;
+}
+.modes {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  width: 100%;
+}
+@media (min-width: 420px) { .modes { grid-template-columns: repeat(4, 1fr); } }
+.mode {
+  font: 700 .82rem var(--font-body);
+  color: var(--ink-soft);
+  background: var(--card);
+  border: 1.5px solid var(--sky-deep);
+  border-radius: 999px;
+  padding: 8px 6px;
+  cursor: pointer;
+  display: grid;
+  line-height: 1.2;
+}
+.mode small { font-weight: 600; font-size: .72rem; opacity: .8; }
+.mode[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-strong); }
+.mode:focus-visible, .btn:focus-visible { outline: 3px solid var(--accent-strong); outline-offset: 2px; }
+
+.ring { position: relative; width: min(230px, 70vw); aspect-ratio: 1; max-width: 100%; }
+.ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring circle { fill: none; stroke-width: 9; }
+.ring .track { stroke: var(--sky-deep); }
+.ring .bar { stroke: var(--accent); stroke-linecap: round; transition: stroke-dashoffset .4s linear; }
+.ring .center { position: absolute; inset: 0; display: grid; place-content: center; gap: 4px; }
+.time {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(2.8rem, 13vw, 3.6rem);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.label {
+  font-size: .75rem;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.controls { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.btn {
+  font: 800 .95rem var(--font-body);
+  border: none;
+  border-radius: 999px;
+  padding: 12px 26px;
+  cursor: pointer;
+}
+.btn.primary { background: var(--accent-strong); color: #fff; min-width: 130px; }
+.btn.ghost { background: transparent; color: var(--ink-soft); border: 1.5px solid var(--sky-deep); }
+.count { font-size: .85rem; color: var(--ink-soft); font-weight: 600; display: flex; gap: 6px; align-items: center; }
+.count .t { display: flex; gap: 4px; }
+.count .t span { width: 10px; height: 10px; border-radius: 50%; background: var(--sky-deep); }
+.count .t span.on { background: var(--accent-strong); }
+.msg { min-height: 1.2em; font-weight: 700; color: var(--ink); font-size: .9rem; }
+</style>
+
+<div class="pomo">
+  <div class="modes" role="group" aria-label="Modo">
+    <button class="mode" id="m-focus" data-min="25" data-label="Concentración" aria-pressed="true">Estudio<small>25'</small></button>
+    <button class="mode" id="m-short" data-min="5" data-label="Pausa corta" aria-pressed="false">Corta<small>5'</small></button>
+    <button class="mode" id="m-mid" data-min="10" data-label="Pausa media" aria-pressed="false">Media<small>10'</small></button>
+    <button class="mode" id="m-long" data-min="15" data-label="Pausa larga" aria-pressed="false">Larga<small>15'</small></button>
+  </div>
+
+  <div class="ring">
+    <svg viewBox="0 0 120 120" aria-hidden="true">
+      <circle class="track" cx="60" cy="60" r="52"></circle>
+      <circle class="bar" id="bar" cx="60" cy="60" r="52"></circle>
+    </svg>
+    <div class="center">
+      <div class="time" id="time" role="timer">25:00</div>
+      <div class="label" id="label">Concentración</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn primary" id="start">Empezar</button>
+    <button class="btn ghost" id="reset">Reiniciar</button>
+  </div>
+
+  <div class="msg" id="msg" aria-live="polite"></div>
+  <div class="count">Pomodoros de hoy <span class="t" id="tally"></span> <span id="n">0</span></div>
+</div>
+
+<script>
+const C = 2 * Math.PI * 52;
+const bar = document.getElementById("bar");
+bar.style.strokeDasharray = C;
+const timeEl = document.getElementById("time"), labelEl = document.getElementById("label");
+const startBtn = document.getElementById("start"), msg = document.getElementById("msg");
+const modes = [...document.querySelectorAll(".mode")];
+
+let total = 25 * 60, left = total, endAt = null, timer = null, current = modes[0], done = 0;
+
+const pad = n => String(n).padStart(2, "0");
+function render() {
+  timeEl.textContent = `${pad(Math.floor(left / 60))}:${pad(left % 60)}`;
+  bar.style.strokeDashoffset = C * (1 - left / total);
+}
+function renderTally() {
+  const t = document.getElementById("tally"); t.innerHTML = "";
+  for (let i = 0; i < 4; i++) { const s = document.createElement("span"); if (i < done % 4 || (done > 0 && done % 4 === 0)) s.className = "on"; t.appendChild(s); }
+  document.getElementById("n").textContent = done;
+}
+function setMode(btn) {
+  stop();
+  current = btn;
+  modes.forEach(b => b.setAttribute("aria-pressed", b === btn));
+  total = left = Number(btn.dataset.min) * 60;
+  labelEl.textContent = btn.dataset.label;
+  msg.textContent = "";
+  render();
+}
+function stop() { clearInterval(timer); timer = null; endAt = null; startBtn.textContent = left < total ? "Seguir" : "Empezar"; }
+function step() {
+  left = Math.max(0, Math.round((endAt - Date.now()) / 1000));
+  render();
+  if (left === 0) finish();
+}
+function finish() {
+  clearInterval(timer); timer = null; endAt = null;
+  chime();
+  if (current.id === "m-focus") {
+    done++; renderTally();
+    msg.textContent = "¡Bien hecho! Elige tu pausa.";
+  } else {
+    msg.textContent = "Pausa terminada. ¡A por el siguiente!";
+  }
+  startBtn.textContent = "Empezar";
+  left = total; render();
+}
+startBtn.addEventListener("click", () => {
+  ensureAudio();
+  if (timer) { stop(); return; }
+  msg.textContent = "";
+  endAt = Date.now() + left * 1000;
+  timer = setInterval(step, 250);
+  startBtn.textContent = "Pausar";
+});
+document.getElementById("reset").addEventListener("click", () => setMode(current));
+modes.forEach(b => b.addEventListener("click", () => setMode(b)));
+
+let ctx = null;
+function ensureAudio() {
+  try { if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)(); if (ctx.state === "suspended") ctx.resume(); } catch (e) {}
+}
+function chime() {
+  if (!ctx) return;
+  const notes = [880, 1108.7, 1318.5];
+  [0, 1].forEach(rep => notes.forEach((f, i) => {
+    const t = ctx.currentTime + rep * 0.9 + i * 0.18;
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = "sine"; o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.3, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
+    o.connect(g).connect(ctx.destination); o.start(t); o.stop(t + 0.65);
+  }));
+}
+render(); renderTally();
+</script>

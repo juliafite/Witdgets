@@ -1,0 +1,104 @@
+<title>Reloj de Júlia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400&family=Nunito:wght@500;600;700&display=swap">
+<style>
+/* Widget para incrustar en Notion: tarjeta única, centrada, azul cielo. Un solo tema claro a propósito. */
+:root {
+  --sky: #a98163;
+  --sky-deep: #8f6a4d;
+  --card: #b8926f;
+  --ink: #fdf6ee;
+  --ink-soft: #ecdcc8;
+  --accent: #f3dfc6;
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body: "Nunito", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+html, body { height: 100%; }
+body {
+  background: var(--sky);
+  color: var(--ink);
+  font-family: var(--font-body);
+  display: grid;
+  place-items: center;
+  padding-inline: 16px;
+  padding-block: 16px;
+  box-sizing: border-box;
+}
+.clock {
+  width: 100%;
+  max-width: 420px;
+  background: linear-gradient(160deg, var(--card), var(--sky-deep));
+  border-radius: 28px;
+  padding: clamp(24px, 6vw, 40px) clamp(20px, 5vw, 36px);
+  box-sizing: border-box;
+  text-align: center;
+  box-shadow: 0 10px 30px -18px rgba(60, 38, 22, .5);
+  display: grid;
+  gap: 10px;
+}
+.greeting {
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.time {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(3.4rem, 17vw, 5.6rem);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.02em;
+}
+.time .sec {
+  font-size: .32em;
+  color: var(--accent);
+  font-weight: 400;
+  margin-left: .15em;
+  vertical-align: .9em;
+}
+.colon { color: var(--accent); animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: .25; } }
+@media (prefers-reduced-motion: reduce) { .colon { animation: none; } }
+.date {
+  font-size: 1.05rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.dots { display: flex; justify-content: center; gap: 6px; margin-top: 4px; }
+.dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--sky-deep); }
+.dots span.on { background: var(--accent); }
+</style>
+
+<div class="clock" role="timer" aria-live="off">
+  <div class="greeting" id="greeting">Buenas tardes</div>
+  <div class="time"><span id="hh">00</span><span class="colon">:</span><span id="mm">00</span><span class="sec" id="ss">00</span></div>
+  <div class="date" id="date">martes, 13 de octubre</div>
+  <div class="dots" id="dots" aria-hidden="true"></div>
+</div>
+
+<script>
+const pad = n => String(n).padStart(2, "0");
+const fmt = new Intl.DateTimeFormat("es-ES", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+const dots = document.getElementById("dots");
+const days = ["L","M","X","J","V","S","D"];
+for (let i = 0; i < 7; i++) { const s = document.createElement("span"); s.title = days[i]; dots.appendChild(s); }
+
+function tick() {
+  const d = new Date();
+  const h = d.getHours();
+  document.getElementById("hh").textContent = pad(h);
+  document.getElementById("mm").textContent = pad(d.getMinutes());
+  document.getElementById("ss").textContent = pad(d.getSeconds());
+  document.getElementById("date").textContent = fmt.format(d);
+  document.getElementById("greeting").textContent =
+    h < 6 ? "Buenas noches" : h < 13 ? "Buenos días" : h < 21 ? "Buenas tardes" : "Buenas noches";
+  const idx = (d.getDay() + 6) % 7;
+  [...dots.children].forEach((s, i) => s.classList.toggle("on", i === idx));
+}
+tick();
+setInterval(tick, 1000);
+</script>
